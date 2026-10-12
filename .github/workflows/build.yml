@@ -67,8 +67,8 @@ jobs:
                   applicationId "com.roadrush.game"
                   minSdk 24
                   targetSdk 35
-                  versionCode 4
-                  versionName "4.0"
+                  versionCode 5
+                  versionName "5.0"
               }
 
               buildTypes {
@@ -126,8 +126,6 @@ jobs:
           <resources>
               <style name="AppTheme" parent="@android:style/Theme.Material.NoActionBar">
                   <item name="android:windowBackground">@android:color/black</item>
-                  <item name="android:statusBarColor">@android:color/transparent</item>
-                  <item name="android:navigationBarColor">@android:color/transparent</item>
                   <item name="android:windowFullscreen">true</item>
               </style>
           </resources>
@@ -147,12 +145,10 @@ jobs:
           </vector>
           EOF_RR
 
-          # Yuvarlak köşeli buton arka planı
           cat > app/src/main/res/drawable/btn_blue.xml <<'EOF_RR'
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-              <gradient android:startColor="#FF2196F3" android:endColor="#FF1565C0"
-                  android:angle="270"/>
+              <gradient android:startColor="#FF2196F3" android:endColor="#FF1565C0" android:angle="270"/>
               <corners android:radius="14dp"/>
               <stroke android:width="1dp" android:color="#FF64B5F6"/>
           </shape>
@@ -161,8 +157,7 @@ jobs:
           cat > app/src/main/res/drawable/btn_purple.xml <<'EOF_RR'
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-              <gradient android:startColor="#FF9C27B0" android:endColor="#FF6A1B9A"
-                  android:angle="270"/>
+              <gradient android:startColor="#FF9C27B0" android:endColor="#FF6A1B9A" android:angle="270"/>
               <corners android:radius="14dp"/>
               <stroke android:width="1dp" android:color="#FFCE93D8"/>
           </shape>
@@ -171,8 +166,7 @@ jobs:
           cat > app/src/main/res/drawable/btn_green.xml <<'EOF_RR'
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-              <gradient android:startColor="#FF43A047" android:endColor="#FF1B5E20"
-                  android:angle="270"/>
+              <gradient android:startColor="#FF43A047" android:endColor="#FF1B5E20" android:angle="270"/>
               <corners android:radius="14dp"/>
               <stroke android:width="1dp" android:color="#FF81C784"/>
           </shape>
@@ -181,8 +175,7 @@ jobs:
           cat > app/src/main/res/drawable/btn_orange.xml <<'EOF_RR'
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-              <gradient android:startColor="#FFFB8C00" android:endColor="#FFE65100"
-                  android:angle="270"/>
+              <gradient android:startColor="#FFFB8C00" android:endColor="#FFE65100" android:angle="270"/>
               <corners android:radius="14dp"/>
               <stroke android:width="1dp" android:color="#FFFFB74D"/>
           </shape>
@@ -191,8 +184,7 @@ jobs:
           cat > app/src/main/res/drawable/btn_red.xml <<'EOF_RR'
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-              <gradient android:startColor="#FFE53935" android:endColor="#FFB71C1C"
-                  android:angle="270"/>
+              <gradient android:startColor="#FFE53935" android:endColor="#FFB71C1C" android:angle="270"/>
               <corners android:radius="14dp"/>
               <stroke android:width="1dp" android:color="#FFEF9A9A"/>
           </shape>
@@ -201,8 +193,7 @@ jobs:
           cat > app/src/main/res/drawable/btn_gray.xml <<'EOF_RR'
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-              <gradient android:startColor="#FF546E7A" android:endColor="#FF263238"
-                  android:angle="270"/>
+              <gradient android:startColor="#FF546E7A" android:endColor="#FF263238" android:angle="270"/>
               <corners android:radius="14dp"/>
               <stroke android:width="1dp" android:color="#FF90A4AE"/>
           </shape>
@@ -211,8 +202,7 @@ jobs:
           cat > app/src/main/res/drawable/panel_bg.xml <<'EOF_RR'
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-              <gradient android:startColor="#EE0D1B2A" android:endColor="#EE1B263B"
-                  android:angle="270"/>
+              <gradient android:startColor="#EE0D1B2A" android:endColor="#EE1B263B" android:angle="270"/>
               <corners android:radius="20dp"/>
               <stroke android:width="2dp" android:color="#FF00E5FF"/>
           </shape>
@@ -221,8 +211,7 @@ jobs:
           cat > app/src/main/res/drawable/preview_bg.xml <<'EOF_RR'
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-              <gradient android:startColor="#FF1A237E" android:endColor="#FF000000"
-                  android:angle="270"/>
+              <gradient android:startColor="#FF1A237E" android:endColor="#FF000000" android:angle="270"/>
               <corners android:radius="16dp"/>
               <stroke android:width="2dp" android:color="#FFFFD54F"/>
           </shape>
@@ -239,8 +228,6 @@ jobs:
           import android.content.SharedPreferences;
 
           public class Save {
-              public static final int CAR_COUNT = 5;
-              public static final int UPGRADE_COUNT = 4;
               public static final int MAX_UPGRADE = 3;
               public static final int MAX_SCORES = 5;
 
@@ -283,6 +270,14 @@ jobs:
               }
               public static void setUpgrade(SharedPreferences p, int idx, int level) {
                   p.edit().putInt("upg_" + idx, level).apply();
+              }
+
+              // Harita seçimi (0=yaz, 1=kış, 2=çöl, 3=yağmur)
+              public static int getMap(SharedPreferences p) {
+                  return p.getInt("map", 0);
+              }
+              public static void setMap(SharedPreferences p, int idx) {
+                  p.edit().putInt("map", idx).apply();
               }
 
               public static int addScore(SharedPreferences p, String name, int score, int mode) {
@@ -377,7 +372,58 @@ jobs:
           EOF_RR
 
           # =====================================================================
-          #  GameRenderer.java - DÜZELTİLMİŞ MOTOR (pürüzsüz hızlanma)
+          #  Maps.java - Harita/hava modları
+          # =====================================================================
+          cat > app/src/main/java/com/roadrush/game/Maps.java <<'EOF_RR'
+          package com.roadrush.game;
+
+          /**
+           * 4 farklı harita / hava durumu:
+           *  0 = Yaz    (yeşil çim, açık mavi gökyüzü)
+           *  1 = Kış    (beyaz kar, gri gökyüzü)
+           *  2 = Çöl    (sarı kum, turuncu gökyüzü)
+           *  3 = Yağmur (koyu yeşil, gri gökyüzü, ıslak asfalt)
+           */
+          public class Maps {
+
+              public static final String[] NAMES = {"☀ Yaz", "❄ Kış", "🏜 Çöl", "🌧 Yağmur"};
+
+              // Gökyüzü rengi (fog rengi = arka plan)
+              public static final float[][] SKY = {
+                      {0.62f, 0.80f, 0.95f},  // Yaz
+                      {0.75f, 0.78f, 0.82f},  // Kış
+                      {0.95f, 0.75f, 0.50f},  // Çöl
+                      {0.42f, 0.45f, 0.50f}   // Yağmur
+              };
+
+              // Çim/kum rengi (açık ton)
+              public static final float[][] GROUND_A = {
+                      {0.30f, 0.62f, 0.30f},  // Yaz açık yeşil
+                      {0.92f, 0.94f, 0.98f},  // Kış kar
+                      {0.88f, 0.75f, 0.42f},  // Çöl kum
+                      {0.22f, 0.40f, 0.22f}   // Yağmur koyu yeşil
+              };
+
+              // Çim/kum rengi (koyu ton)
+              public static final float[][] GROUND_B = {
+                      {0.26f, 0.56f, 0.27f},
+                      {0.82f, 0.86f, 0.92f},
+                      {0.82f, 0.68f, 0.36f},
+                      {0.18f, 0.34f, 0.18f}
+              };
+
+              // Asfalt rengi
+              public static final float[][] ROAD = {
+                      {0.22f, 0.23f, 0.26f},  // Yaz
+                      {0.28f, 0.28f, 0.32f},  // Kış (tuzlu yol)
+                      {0.35f, 0.32f, 0.28f},  // Çöl (tozlu)
+                      {0.12f, 0.13f, 0.16f}   // Yağmur (ıslak koyu)
+              };
+          }
+          EOF_RR
+
+          # =====================================================================
+          #  GameRenderer.java
           # =====================================================================
           cat > app/src/main/java/com/roadrush/game/GameRenderer.java <<'EOF_RR'
           package com.roadrush.game;
@@ -404,17 +450,19 @@ jobs:
 
               public static final int MODE_ENDLESS = 0;
               public static final int MODE_TIME_TRIAL = 1;
-              public static final int MODE_HOT_PURSUIT = 2;
 
               public static final int PU_NITRO = 0;
               public static final int PU_SHIELD = 1;
               public static final int PU_SLOWMO = 2;
               public static final int PU_MAGNET = 3;
               public static final int PU_DOUBLE_GOLD = 4;
-              public static final int PU_COUNT = 5;
+              public static final int PU_TIME = 5;   // YENİ: zaman ekleme kutusu
+              public static final int PU_COUNT = 6;
 
-              static final float[] OB_W = {1.9f, 0.6f, 0.9f, 2.4f, 0.5f};
-              static final float[] OB_D = {0.5f, 0.5f, 1.0f, 2.4f, 0.5f};
+              // Engel tipleri (sadece mantıklı olanlar)
+              // 0: bariyer, 1: koni, 2: varil, 3: araba (karşıdan), 4: kamyon (karşıdan)
+              static final float[] OB_W = {1.9f, 0.6f, 0.9f, 1.15f, 2.2f};
+              static final float[] OB_D = {0.5f, 0.5f, 1.0f, 2.2f, 2.4f};
 
               public interface Listener {
                   void onScore(int score);
@@ -425,23 +473,18 @@ jobs:
                   void onReturnToMenu();
               }
 
-              // ---- Sabitler ----
               static final float LANE_W = 2.2f;
               static final float MAX_X = 2.55f;
               static final float MAX_LAT = 8f;
-              // PÜRÜZSÜZ HIZLANMA İÇİN
-              static final float BASE_SPEED = 22f;     // Başlangıç hızı
-              static final float MAX_SPEED = 58f;      // Üst sınır
-              static final float SPEED_RAMP = 1.1f;    // Saniyede artış hızı (m/s)
+              static final float BASE_SPEED = 22f;
+              static final float MAX_SPEED = 58f;
               static final float SPAWN_Z = -115f;
               static final float PLAYER_HALF_W = 0.40f;
               static final float PLAYER_HALF_L = 0.85f;
-              static final int MAX_OBS = 48;
-              static final int MAX_PU = 16;
+              static final int MAX_OBS = 40;
+              static final int MAX_PU = 6;     // KUTU SAYISI ÇOK AZALTILDI (16 -> 6)
               static final int MAX_COIN = 24;
               static final int MAX_PARTS = 60;
-
-              static final float FOG_R = 0.62f, FOG_G = 0.80f, FOG_B = 0.95f;
 
               static final float[][] CAR_COLORS = {
                       {0.20f, 0.45f, 0.90f},
@@ -452,25 +495,25 @@ jobs:
                       {0.85f, 0.30f, 0.20f}
               };
 
+              // Power-up renkleri
               static final float[][] PU_COLORS = {
-                      {0.20f, 0.70f, 1.00f},
-                      {0.30f, 1.00f, 0.40f},
-                      {0.80f, 0.60f, 1.00f},
-                      {1.00f, 0.55f, 0.80f},
-                      {1.00f, 0.85f, 0.10f}
+                      {0.20f, 0.70f, 1.00f},   // Nitro — mavi
+                      {0.30f, 1.00f, 0.40f},   // Shield — yeşil
+                      {0.90f, 0.55f, 0.15f},   // SlowMo — turuncu (yavaşlatıcı)
+                      {1.00f, 0.30f, 0.60f},   // Magnet — pembe
+                      {1.00f, 0.85f, 0.10f},   // DoubleGold — sarı
+                      {0.30f, 0.85f, 0.95f}    // Time — açık mavi (saat)
               };
 
-              // ---- Girdi ----
               public volatile float steer = 0f;
               private volatile boolean tapReq = false;
 
               private final Listener listener;
 
-              // ---- Oyun durumu ----
               public int state = READY;
               public int mode = MODE_ENDLESS;
-              float speed = 10f;           // anlık hız
-              float targetSpeed = 10f;     // hedef hız (yumuşak geçiş için)
+              float speed = 10f;
+              float targetSpeed = 10f;
               float dist = 0f;
               float scroll = 0f;
               float px = 0f;
@@ -484,7 +527,6 @@ jobs:
               float time = 0f;
               boolean returnMenuShown = false;
 
-              // Oyuncu stats
               float speedMult = 1f;
               float turnMult = 1f;
               float nitroCapacity = 3.5f;
@@ -504,7 +546,9 @@ jobs:
               public float magnetTime = 0f;
               public float doubleGoldTime = 0f;
 
-              // Engeller
+              // Aktif harita (0-3)
+              public int mapIdx = 0;
+
               final boolean[] oAct = new boolean[MAX_OBS];
               final float[] oX = new float[MAX_OBS];
               final float[] oZ = new float[MAX_OBS];
@@ -513,20 +557,17 @@ jobs:
               final int[] oDir = new int[MAX_OBS];
               final float[] oSpeed = new float[MAX_OBS];
 
-              // Power-up'lar
               final boolean[] puAct = new boolean[MAX_PU];
               final float[] puX = new float[MAX_PU];
               final float[] puZ = new float[MAX_PU];
               final int[] puType = new int[MAX_PU];
               final float[] puSpin = new float[MAX_PU];
 
-              // Altınlar
               final boolean[] coinAct = new boolean[MAX_COIN];
               final float[] coinX = new float[MAX_COIN];
               final float[] coinZ = new float[MAX_COIN];
               final float[] coinSpin = new float[MAX_COIN];
 
-              // Parçacıklar
               final boolean[] partAct = new boolean[MAX_PARTS];
               final float[] partX = new float[MAX_PARTS];
               final float[] partY = new float[MAX_PARTS];
@@ -540,7 +581,6 @@ jobs:
               private final Random rnd = new Random();
               private long lastNanos = 0L;
 
-              // GL
               private int program = 0;
               private int aPos, aNormal;
               private int uMVP, uModel, uColor, uGlow, uLight, uFogColor, uFogStart, uFogEnd;
@@ -573,10 +613,6 @@ jobs:
                   shieldCapacity = 5f + zirhLvl * 1.2f + Cars.SHIELD_BONUS[carIdx];
               }
 
-              // ============================================================
-              //  OYUN MANTIGI
-              // ============================================================
-
               private void handleTap() {
                   if (state == DEAD && crashT > 0.7f) {
                       if (!returnMenuShown) {
@@ -598,7 +634,6 @@ jobs:
                   crashT = 0f;
                   nextRow = 0f;
                   safeLane = 1;
-                  // YUMUŞAK BAŞLANGIÇ
                   speed = BASE_SPEED * 0.5f;
                   targetSpeed = BASE_SPEED;
                   lastScore = -1;
@@ -620,13 +655,10 @@ jobs:
                   time += dt;
                   if (tapReq) { tapReq = false; handleTap(); }
 
-                  // ==========================================================
-                  // HIZ: pürüzsüz hedef hız takibi
-                  // ==========================================================
+                  // Hız
                   if (state == READY) {
                       targetSpeed = 12f;
                   } else if (state == PLAYING) {
-                      // Zamanla yavaşça artan hedef hız
                       targetSpeed = BASE_SPEED + dist / 55f;
                       if (targetSpeed > MAX_SPEED) targetSpeed = MAX_SPEED;
                       targetSpeed *= speedMult;
@@ -637,19 +669,15 @@ jobs:
                       crashT += dt;
                   }
 
-                  // KRİTİK DÜZELTME: hız = targetSpeed'e yumuşak yaklaşım
-                  // ivme = 6 m/s² sınırlı
                   float maxAccel = 8f * dt;
                   float diff = targetSpeed - speed;
                   if (diff > maxAccel) diff = maxAccel;
                   else if (diff < -maxAccel) diff = -maxAccel;
                   speed += diff;
-
                   if (speed < 3f) speed = 3f;
 
                   scroll += speed * dt;
 
-                  // Efekt süreleri
                   if (nitroTime > 0f) nitroTime -= dt;
                   if (shieldTime > 0f) shieldTime -= dt;
                   if (slowmoTime > 0f) slowmoTime -= dt;
@@ -675,12 +703,6 @@ jobs:
                       if (mode == MODE_TIME_TRIAL) {
                           timeLeft -= dt;
                           if (timeLeft <= 0f) { crash(); return; }
-                          if (dist >= nextCheckpoint) {
-                              checkpointsPassed++;
-                              timeLeft += 15f;
-                              nextCheckpoint += 500f;
-                              if (listener != null) listener.onCheckpoint(checkpointsPassed, timeLeft);
-                          }
                       }
 
                       float d = Math.min(1f, dist / 4000f);
@@ -688,13 +710,15 @@ jobs:
                       nextRow -= speed * dt;
                       if (nextRow <= 0f) {
                           spawnRow(d);
-                          // Satır aralığı: hız ile orantılı (yumuşak zorluk)
-                          nextRow = Math.max(16f - d * 6f, speed * (0.9f - d * 0.3f))
-                                  + rnd.nextFloat() * (8f - d * 4f);
+                          nextRow = Math.max(18f - d * 6f, speed * (1.0f - d * 0.3f))
+                                  + rnd.nextFloat() * (10f - d * 4f);
                       }
 
-                      if (rnd.nextFloat() < 0.20f) spawnPowerUp();
-                      if (rnd.nextFloat() < 0.70f) spawnCoinLine();
+                      // KUTU ÇOK NADİR ÇIKSIN: %1.5 olasılık (eski %20)
+                      if (rnd.nextFloat() < 0.015f) spawnPowerUp();
+
+                      // Altın çok sık çıksın
+                      if (rnd.nextFloat() < 0.75f) spawnCoinLine();
                   }
 
                   // Engeller
@@ -713,7 +737,8 @@ jobs:
                       puZ[i] += speed * dt;
                       puSpin[i] += dt * 3f;
                       if (state == PLAYING
-                              && Math.abs(px - puX[i]) < 1.0f                              && Math.abs(puZ[i]) < 1.5f) {
+                              && Math.abs(px - puX[i]) < 1.1f
+                              && Math.abs(puZ[i]) < 1.6f) {
                           applyPowerUp(puType[i]);
                           puAct[i] = false;
                       }
@@ -733,7 +758,7 @@ jobs:
                           coinAct[i] = false;
                           int gain = doubleGoldTime > 0f ? 2 : 1;
                           runGold += gain;
-                          spawnSparkles(coinX[i], 0.8f, coinZ[i], 8, 1f, 0.85f, 0.1f);
+                          spawnSparkles(coinX[i], 0.8f, coinZ[i], 6, 1f, 0.85f, 0.1f);
                       }
                       if (coinZ[i] > 12f) coinAct[i] = false;
                   }
@@ -750,7 +775,6 @@ jobs:
                       }
                   }
 
-                  // Parçacıklar
                   for (int i = 0; i < MAX_PARTS; i++) {
                       if (!partAct[i]) continue;
                       partLife[i] -= dt;
@@ -762,7 +786,6 @@ jobs:
                       if (partY[i] < 0.05f) { partY[i] = 0.05f; partVY[i] *= -0.4f; partVX[i] *= 0.7f; partVZ[i] *= 0.7f; }
                   }
 
-                  // Skor
                   if (state == PLAYING) {
                       int sc = score();
                       if (sc != lastScore) {
@@ -791,6 +814,7 @@ jobs:
                       case PU_SLOWMO: slowmoTime = 4.0f; break;
                       case PU_MAGNET: magnetTime = 6.0f; break;
                       case PU_DOUBLE_GOLD: doubleGoldTime = 8.0f; break;
+                      case PU_TIME: timeLeft += 10f; break;   // YENİ: +10 saniye
                   }
                   if (listener != null) listener.onPowerUp(type);
               }
@@ -815,13 +839,21 @@ jobs:
                   }
               }
 
+              /**
+               * Sadece MANTIKLI engeller:
+               *  0 = bariyer (yol çalışması)
+               *  1 = koni
+               *  2 = varil
+               *  3 = araba (karşıdan)
+               *  4 = kamyon (karşıdan)
+               */
               private int pickObstacleType(float diff) {
                   float r = rnd.nextFloat();
-                  if (r < 0.28f) return 0;
-                  if (r < 0.45f) return 1;
-                  if (r < 0.62f) return 2;
-                  if (r < 0.62f + diff * 0.25f) return 3;
-                  return 4;
+                  if (r < 0.20f) return 0;       // bariyer
+                  if (r < 0.35f) return 1;       // koni
+                  if (r < 0.50f) return 2;       // varil
+                  if (r < 0.75f) return 3;       // araba
+                  return 4;                       // kamyon
               }
 
               private void addObstacle(float x, int type) {
@@ -832,12 +864,14 @@ jobs:
                       oZ[i] = SPAWN_Z;
                       oType[i] = type;
                       oCol[i] = rnd.nextInt(CAR_COLORS.length);
-                      if (type == 1 || type == 2) {
+                      if (type == 0 || type == 1 || type == 2) {
+                          // Sabit engeller
                           oDir[i] = +1;
                           oSpeed[i] = 0f;
                       } else {
+                          // Araba ve kamyon: karşıdan gelir
                           oDir[i] = rnd.nextBoolean() ? -1 : +1;
-                          oSpeed[i] = 3f + rnd.nextFloat() * 6f;
+                          oSpeed[i] = 4f + rnd.nextFloat() * 8f;
                       }
                       return;
                   }
@@ -851,7 +885,12 @@ jobs:
                       if (lane == safeLane) lane = (lane + 1) % 3;
                       puX[i] = (lane - 1) * LANE_W;
                       puZ[i] = SPAWN_Z;
-                      puType[i] = rnd.nextInt(PU_COUNT);
+                      // Zaman modunda zaman kutusu daha çok çıksın
+                      if (mode == MODE_TIME_TRIAL && rnd.nextFloat() < 0.5f) {
+                          puType[i] = PU_TIME;
+                      } else {
+                          puType[i] = rnd.nextInt(PU_COUNT);
+                      }
                       puSpin[i] = rnd.nextFloat() * 6.28f;
                       return;
                   }
@@ -1016,7 +1055,8 @@ jobs:
               private void render() {
                   if (program == 0) return;
 
-                  GLES20.glClearColor(FOG_R, FOG_G, FOG_B, 1f);
+                  float[] sky = Maps.SKY[mapIdx];
+                  GLES20.glClearColor(sky[0], sky[1], sky[2], 1f);
                   GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
                   GLES20.glUseProgram(program);
 
@@ -1033,7 +1073,7 @@ jobs:
                   Matrix.multiplyMM(vp, 0, proj, 0, view, 0);
 
                   GLES20.glUniform3f(uLight, 0.4f, 1.0f, 0.6f);
-                  GLES20.glUniform3f(uFogColor, FOG_R, FOG_G, FOG_B);
+                  GLES20.glUniform3f(uFogColor, sky[0], sky[1], sky[2]);
                   GLES20.glUniform1f(uFogStart, 45f);
                   GLES20.glUniform1f(uFogEnd, 150f);
 
@@ -1054,18 +1094,24 @@ jobs:
               }
 
               private void drawEnvironment() {
+                  float[] gA = Maps.GROUND_A[mapIdx];
+                  float[] gB = Maps.GROUND_B[mapIdx];
+                  float[] rd = Maps.ROAD[mapIdx];
+
                   final float gp = 10f;
                   float off = scroll % gp;
                   int f = (int) (scroll / gp);
                   for (int i = -1; i <= 18; i++) {
                       boolean a = (((i + f) & 1) == 0);
                       float z = -i * gp + off;
-                      if (a) box(ident, 0, -0.1f, z, 120f, 0.2f, gp, 0.30f, 0.62f, 0.30f, 0f);
-                      else box(ident, 0, -0.1f, z, 120f, 0.2f, gp, 0.26f, 0.56f, 0.27f, 0f);
+                      if (a) box(ident, 0, -0.1f, z, 120f, 0.2f, gp, gA[0], gA[1], gA[2], 0f);
+                      else box(ident, 0, -0.1f, z, 120f, 0.2f, gp, gB[0], gB[1], gB[2], 0f);
                   }
-                  box(ident, 0, 0f, -90f, 6.6f, 0.2f, 220f, 0.22f, 0.23f, 0.26f, 0f);
+                  box(ident, 0, 0f, -90f, 6.6f, 0.2f, 220f, rd[0], rd[1], rd[2], 0f);
+                  // Kenar çizgileri
                   box(ident, -3.0f, 0.12f, -90f, 0.12f, 0.04f, 220f, 0.95f, 0.95f, 0.95f, 0f);
                   box(ident, 3.0f, 0.12f, -90f, 0.12f, 0.04f, 220f, 0.95f, 0.95f, 0.95f, 0f);
+                  // Şerit çizgileri
                   final float dp = 8f;
                   off = scroll % dp;
                   for (int i = -1; i < 17; i++) {
@@ -1073,6 +1119,7 @@ jobs:
                       box(ident, -1.1f, 0.12f, z, 0.14f, 0.04f, 3f, 0.95f, 0.95f, 0.85f, 0f);
                       box(ident, 1.1f, 0.12f, z, 0.14f, 0.04f, 3f, 0.95f, 0.95f, 0.85f, 0f);
                   }
+                  // Kenar bordür (kış hariç)
                   final float cp = 4f;
                   off = scroll % cp;
                   f = (int) (scroll / cp);
@@ -1082,9 +1129,14 @@ jobs:
                       float r = a ? 0.88f : 0.95f;
                       float g = a ? 0.15f : 0.95f;
                       float b = a ? 0.15f : 0.95f;
+                      if (mapIdx == 1) { // Kış: sadece beyaz bordür
+                          r = 0.95f; g = 0.95f; b = 0.95f;
+                      }
                       box(ident, -3.45f, 0.05f, z, 0.35f, 0.2f, cp, r, g, b, 0f);
                       box(ident, 3.45f, 0.05f, z, 0.35f, 0.2f, cp, r, g, b, 0f);
                   }
+
+                  // Ağaçlar — çöle kaktüs, kışa çam, yaza normal, yağmura koyu
                   final float tp = 14f;
                   off = scroll % tp;
                   f = (int) (scroll / tp);
@@ -1097,8 +1149,19 @@ jobs:
                           if (h % 5 == 0) continue;
                           float x = s * (5.8f + (h % 3) * 1.7f);
                           float th = 1.0f + (h % 4) * 0.35f;
-                          box(ident, x, th * 0.5f, z, 0.3f, th, 0.3f, 0.45f, 0.30f, 0.15f, 0f);
-                          box(ident, x, th + 0.8f, z, 1.5f, 1.6f, 1.5f, 0.15f, 0.45f + (h % 3) * 0.05f, 0.18f, 0f);
+                          if (mapIdx == 2) {
+                              // Çöl: kaktüs
+                              box(ident, x, 1.2f, z, 0.4f, 2.4f, 0.4f, 0.25f, 0.55f, 0.20f, 0f);
+                              box(ident, x + 0.4f, 1.4f, z, 0.35f, 0.15f, 0.35f, 0.25f, 0.55f, 0.20f, 0f);
+                          } else if (mapIdx == 1) {
+                              // Kış: çam ağacı (koyu yeşil + kar)
+                              box(ident, x, th * 0.5f, z, 0.3f, th, 0.3f, 0.35f, 0.25f, 0.15f, 0f);
+                              box(ident, x, th + 0.8f, z, 1.5f, 1.6f, 1.5f, 0.10f, 0.35f, 0.15f, 0f);
+                              box(ident, x, th + 1.5f, z, 1.2f, 0.3f, 1.2f, 0.95f, 0.95f, 1.0f, 0f);
+                          } else {
+                              box(ident, x, th * 0.5f, z, 0.3f, th, 0.3f, 0.45f, 0.30f, 0.15f, 0f);
+                              box(ident, x, th + 0.8f, z, 1.5f, 1.6f, 1.5f, 0.15f, 0.45f + (h % 3) * 0.05f, 0.18f, 0f);
+                          }
                       }
                   }
               }
@@ -1113,8 +1176,8 @@ jobs:
                           case 0: drawBarrier(base); break;
                           case 1: drawCone(base); break;
                           case 2: drawBarrel(base); break;
-                          case 3: drawTruck(base, CAR_COLORS[oCol[i]]); break;
-                          default: drawPole(base); break;
+                          case 3: drawTrafficCar(base, CAR_COLORS[oCol[i]]); break;
+                          default: drawTruck(base, CAR_COLORS[oCol[i]]); break;
                       }
                   }
               }
@@ -1141,6 +1204,18 @@ jobs:
                   box(b, 0f, 0.7f, 0f, 0.92f, 0.12f, 0.92f, 1f, 0.8f, 0.1f, 0f);
               }
 
+              private void drawTrafficCar(float[] b, float[] c) {
+                  box(b, 0f, 0.42f, 0f, 1.15f, 0.5f, 2.2f, c[0], c[1], c[2], 0f);
+                  box(b, 0f, 0.86f, -0.2f, 0.97f, 0.38f, 1.08f, 0.12f, 0.16f, 0.22f, 0f);
+                  box(b, 0f, 1.07f, -0.2f, 0.92f, 0.05f, 1.0f, c[0]*0.8f, c[1]*0.8f, c[2]*0.8f, 0f);
+                  box(b, -0.38f, 0.5f, 1.1f, 0.25f, 0.14f, 0.06f, 1f, 0.95f, 0.6f, 1f);
+                  box(b, 0.38f, 0.5f, 1.1f, 0.25f, 0.14f, 0.06f, 1f, 0.95f, 0.6f, 1f);
+                  box(b, 0f, 0.22f, 1.1f, 1.15f, 0.12f, 0.06f, 0.1f, 0.1f, 0.1f, 0f);
+                  for (int sx = -1; sx <= 1; sx += 2)
+                      for (int sz = -1; sz <= 1; sz += 2)
+                          box(b, sx * 0.58f, 0.18f, sz * 0.7f, 0.2f, 0.36f, 0.5f, 0.07f, 0.07f, 0.07f, 0f);
+              }
+
               private void drawTruck(float[] b, float[] c) {
                   box(b, 0f, 0.6f, 0f, 2.2f, 1.2f, 2.4f, c[0], c[1], c[2], 0f);
                   box(b, 0f, 1.4f, 0f, 2.0f, 0.4f, 2.2f, 0.9f, 0.9f, 0.9f, 0f);
@@ -1152,11 +1227,9 @@ jobs:
                           box(b, sx * 1.1f, 0.3f, sz * 0.8f, 0.25f, 0.6f, 0.7f, 0.06f, 0.06f, 0.06f, 0f);
               }
 
-              private void drawPole(float[] b) {
-                  box(b, 0f, 1.0f, 0f, 0.2f, 2.0f, 0.2f, 0.4f, 0.4f, 0.45f, 0f);
-                  box(b, 0f, 2.0f, 0f, 1.0f, 0.15f, 0.15f, 0.4f, 0.4f, 0.45f, 0f);
-                  box(b, 0f, 0.5f, 0f, 0.24f, 0.2f, 0.24f, 1f, 0.2f, 0.2f, 0f);
-              }
+              // ============================================================
+              //  POWER-UP KUTULARI (SİMGELİ)
+              // ============================================================
 
               private void drawPowerUps() {
                   for (int i = 0; i < MAX_PU; i++) {
@@ -1165,10 +1238,60 @@ jobs:
                       Matrix.setIdentityM(base, 0);
                       Matrix.translateM(base, 0, puX[i], 0.9f, puZ[i]);
                       Matrix.rotateM(base, 0, puSpin[i] * 57.3f, 0f, 1f, 0f);
-                      Matrix.rotateM(base, 0, 35f, 1f, 0f, 0f);
-                      box(base, 0f, 0f, 0f, 1.1f, 1.1f, 1.1f,
-                              c[0] * 0.5f, c[1] * 0.5f, c[2] * 0.5f, 0.8f);
-                      box(base, 0f, 0f, 0f, 0.7f, 0.7f, 0.7f, c[0], c[1], c[2], 1f);
+
+                      // Dış kutu (yarı şeffaf renkli)
+                      box(base, 0f, 0f, 0f, 1.3f, 1.3f, 1.3f,
+                              c[0] * 0.4f, c[1] * 0.4f, c[2] * 0.4f, 0.6f);
+
+                      // İç simge (küçük 3D şekiller)
+                      Matrix.pushMatrix();
+                      drawPowerUpIcon(base, puType[i], c);
+                      Matrix.popMatrix();
+                  }
+              }
+
+              /** Kutu içindeki simgeyi çizer. */
+              private void drawPowerUpIcon(float[] b, int type, float[] c) {
+                  switch (type) {
+                      case PU_NITRO:
+                          // ALEV: sivri üçgen gibi üst üste
+                          box(b, 0f, -0.1f, 0f, 0.3f, 0.5f, 0.3f, 1f, 0.5f, 0.1f, 1f);
+                          box(b, 0f, 0.3f, 0f, 0.4f, 0.4f, 0.4f, 1f, 0.9f, 0.2f, 1f);
+                          box(b, 0f, 0.55f, 0f, 0.2f, 0.3f, 0.2f, 1f, 1f, 0.5f, 1f);
+                          break;
+                      case PU_SHIELD:
+                          // KALKAN: düz blok + üstü daralan
+                          box(b, 0f, 0f, 0f, 0.7f, 0.7f, 0.15f, 0.3f, 1f, 0.4f, 1f);
+                          box(b, 0f, 0.4f, 0f, 0.5f, 0.3f, 0.15f, 0.3f, 1f, 0.4f, 1f);
+                          box(b, 0f, -0.4f, 0f, 0.5f, 0.3f, 0.15f, 0.3f, 1f, 0.4f, 1f);
+                          break;
+                      case PU_SLOWMO:
+                          // YAVAŞLATICI: aşağı bakan ok
+                          box(b, 0f, 0.3f, 0f, 0.5f, 0.3f, 0.15f, 1f, 0.6f, 0.2f, 1f);
+                          box(b, 0f, -0.15f, 0f, 0.3f, 0.5f, 0.15f, 1f, 0.6f, 0.2f, 1f);
+                          break;
+                      case PU_MAGNET:
+                          // MIKNATIS: U şekli (iki dikey + bir yatay)
+                          box(b, -0.25f, 0f, 0f, 0.2f, 0.7f, 0.2f, 1f, 0.3f, 0.6f, 1f);
+                          box(b, 0.25f, 0f, 0f, 0.2f, 0.7f, 0.2f, 1f, 0.3f, 0.6f, 1f);
+                          box(b, 0f, -0.3f, 0f, 0.6f, 0.2f, 0.2f, 1f, 0.3f, 0.6f, 1f);
+                          // Uçlar beyaz
+                          box(b, -0.25f, 0.3f, 0f, 0.22f, 0.15f, 0.22f, 1f, 1f, 1f, 1f);
+                          box(b, 0.25f, 0.3f, 0f, 0.22f, 0.15f, 0.22f, 1f, 1f, 1f, 1f);
+                          break;
+                      case PU_DOUBLE_GOLD:
+                          // 2x ALTIN: iki altın küpü
+                          box(b, -0.2f, -0.1f, 0f, 0.4f, 0.4f, 0.3f, 1f, 0.85f, 0.1f, 1f);
+                          box(b, 0.2f, 0.2f, 0f, 0.4f, 0.4f, 0.3f, 1f, 0.95f, 0.3f, 1f);
+                          break;
+                      case PU_TIME:
+                          // SAAT: yuvarlak gövde + ibre
+                          box(b, 0f, 0f, 0f, 0.6f, 0.6f, 0.15f, 0.3f, 0.85f, 0.95f, 1f);
+                          // Akrep
+                          box(b, 0f, 0.15f, 0.1f, 0.08f, 0.3f, 0.08f, 1f, 1f, 1f, 1f);
+                          // Yelkovan
+                          box(b, 0.12f, 0f, 0.1f, 0.25f, 0.07f, 0.08f, 1f, 1f, 1f, 1f);
+                          break;
                   }
               }
 
@@ -1258,10 +1381,6 @@ jobs:
                           box(base, sx * 0.52f, 0.18f, sz * 0.62f, 0.2f, 0.36f, 0.5f, 0.06f, 0.06f, 0.06f, 0f);
               }
 
-              // ============================================================
-              //  SHADER YARDIMCILARI
-              // ============================================================
-
               private static int loadShader(int type, String src) {
                   int s = GLES20.glCreateShader(type);
                   GLES20.glShaderSource(s, src);
@@ -1297,7 +1416,7 @@ jobs:
           EOF_RR
 
           # =====================================================================
-          #  PreviewRenderer.java - Garaj/modifiye önizleme için 3D render
+          #  PreviewRenderer.java
           # =====================================================================
           cat > app/src/main/java/com/roadrush/game/PreviewRenderer.java <<'EOF_RR'
           package com.roadrush.game;
@@ -1305,7 +1424,6 @@ jobs:
           import android.opengl.GLES20;
           import android.opengl.GLSurfaceView;
           import android.opengl.Matrix;
-          import android.util.Log;
 
           import java.nio.ByteBuffer;
           import java.nio.ByteOrder;
@@ -1315,10 +1433,6 @@ jobs:
           import javax.microedition.khronos.egl.EGLConfig;
           import javax.microedition.khronos.opengles.GL10;
 
-          /**
-           * Garaj/modifiye ekranındaki küçük 3D önizleme penceresi.
-           * Seçili arabayı yavaşça döndürerek gösterir.
-           */
           public class PreviewRenderer implements GLSurfaceView.Renderer {
 
               private int program = 0;
@@ -1505,7 +1619,7 @@ jobs:
           EOF_RR
 
           # =====================================================================
-          #  MainActivity.java - İki sahne (menü / oyun) + önizleme + şık UI
+          #  MainActivity.java
           # =====================================================================
           cat > app/src/main/java/com/roadrush/game/MainActivity.java <<'EOF_RR'
           package com.roadrush.game;
@@ -1522,7 +1636,6 @@ jobs:
           import android.os.VibrationEffect;
           import android.os.Vibrator;
           import android.text.InputType;
-          import android.util.TypedValue;
           import android.view.Gravity;
           import android.view.MotionEvent;
           import android.view.View;
@@ -1536,7 +1649,6 @@ jobs:
 
           public class MainActivity extends Activity implements GameRenderer.Listener {
 
-              // İki sahne: MENÜ ve OYUN
               private FrameLayout gameScene;
               private ScrollView menuScene;
 
@@ -1547,17 +1659,14 @@ jobs:
               private PreviewRenderer previewRenderer;
 
               private TextView scoreText;
+              private TextView timeText;
               private TextView hudText;
               private LinearLayout menuLayout;
-              private TextView titleText;
 
               private SharedPreferences prefs;
               private Vibrator vib;
               private int selectedMode = GameRenderer.MODE_ENDLESS;
               private float density;
-
-              // İlk açılış: skor tablosu mu, menü mü?
-              private boolean firstLaunch = true;
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
@@ -1567,13 +1676,13 @@ jobs:
                   vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                   density = getResources().getDisplayMetrics().density;
 
-                  // ---- KÖK KAPSAYICI ----
                   FrameLayout root = new FrameLayout(this);
                   root.setBackgroundColor(Color.BLACK);
 
-                  // ---- OYUN SAHNESİ (GLSurfaceView + HUD) ----
+                  // ---------- OYUN SAHNESİ ----------
                   gameScene = new FrameLayout(this);
                   renderer = new GameRenderer(this);
+                  renderer.mapIdx = Save.getMap(prefs);
                   glView = new GLSurfaceView(this);
                   glView.setEGLContextClientVersion(2);
                   glView.setEGLConfigChooser(8, 8, 8, 8, 24, 0);
@@ -1601,9 +1710,10 @@ jobs:
                   gameScene.addView(glView, new FrameLayout.LayoutParams(
                           FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
+                  // Skor göstergesi (büyük)
                   scoreText = new TextView(this);
                   scoreText.setTextColor(Color.WHITE);
-                  scoreText.setTextSize(32f);
+                  scoreText.setTextSize(34f);
                   scoreText.setTypeface(Typeface.DEFAULT_BOLD);
                   scoreText.setShadowLayer(8f, 0f, 3f, Color.BLACK);
                   scoreText.setText("0 m");
@@ -1613,9 +1723,22 @@ jobs:
                   sp.topMargin = (int) (60 * density);
                   gameScene.addView(scoreText, sp);
 
+                  // Zaman göstergesi (Zaman modu için büyük)
+                  timeText = new TextView(this);
+                  timeText.setTextColor(0xFFFFEB3B);
+                  timeText.setTextSize(26f);
+                  timeText.setTypeface(Typeface.DEFAULT_BOLD);
+                  timeText.setShadowLayer(8f, 0f, 3f, Color.BLACK);
+                  timeText.setVisibility(View.GONE);
+                  FrameLayout.LayoutParams ttp = new FrameLayout.LayoutParams(
+                          FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT,
+                          Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+                  ttp.topMargin = (int) (110 * density);
+                  gameScene.addView(timeText, ttp);
+
                   hudText = new TextView(this);
                   hudText.setTextColor(0xFFFFD54F);
-                  hudText.setTextSize(16f);
+                  hudText.setTextSize(15f);
                   hudText.setTypeface(Typeface.DEFAULT_BOLD);
                   hudText.setShadowLayer(8f, 0f, 3f, Color.BLACK);
                   hudText.setGravity(Gravity.END);
@@ -1630,7 +1753,7 @@ jobs:
                   root.addView(gameScene, new FrameLayout.LayoutParams(
                           FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
-                  // ---- MENÜ SAHNESİ ----
+                  // ---------- MENÜ SAHNESİ ----------
                   menuScene = new ScrollView(this);
                   menuScene.setBackgroundColor(0xFF0B0E1A);
                   menuLayout = new LinearLayout(this);
@@ -1644,7 +1767,6 @@ jobs:
 
                   setContentView(root);
 
-                  // İsim sor
                   if (!prefs.contains("username")) {
                       askName(true);
                   } else {
@@ -1652,10 +1774,6 @@ jobs:
                   }
                   hideSystemUi();
               }
-
-              // ============================================================
-              //  SAHNE GEÇİŞLERİ
-              // ============================================================
 
               private void showMenuScene() {
                   gameScene.setVisibility(View.GONE);
@@ -1669,13 +1787,12 @@ jobs:
               }
 
               // ============================================================
-              //  AÇILIŞ: SKOR TABLOSU ÖNCE
+              //  LEADERBOARD (açılış)
               // ============================================================
 
               private void showLeaderboardFirst() {
                   menuLayout.removeAllViews();
 
-                  // Başlık
                   TextView title = new TextView(this);
                   title.setText("ROAD RUSH");
                   title.setTextColor(0xFFFFD54F);
@@ -1701,7 +1818,6 @@ jobs:
                   sub.setLayoutParams(slp);
                   menuLayout.addView(sub);
 
-                  // Skor paneli
                   LinearLayout panel = new LinearLayout(this);
                   panel.setOrientation(LinearLayout.VERTICAL);
                   panel.setBackgroundResource(R.drawable.panel_bg);
@@ -1711,12 +1827,10 @@ jobs:
                   int[] scores = Save.getScores(prefs);
                   String[] names = Save.getScoreNames(prefs);
                   int[] modes = Save.getScoreModes(prefs);
-                  String[] modeName = {"Sonsuz", "Zaman", "Polis"};
+                  String[] modeName = {"Sonsuz", "Zaman"};
 
                   boolean any = false;
-                  for (int i = 0; i < Save.MAX_SCORES; i++) {
-                      if (scores[i] > 0) { any = true; break; }
-                  }
+                  for (int i = 0; i < Save.MAX_SCORES; i++) if (scores[i] > 0) any = true;
 
                   if (!any) {
                       TextView empty = new TextView(this);
@@ -1756,7 +1870,7 @@ jobs:
                           row.addView(sc);
 
                           TextView md = new TextView(this);
-                          md.setText("  [" + (scores[i] > 0 ? modeName[modes[i]] : "-") + "]");
+                          md.setText("  [" + (scores[i] > 0 && modes[i] < modeName.length ? modeName[modes[i]] : "-") + "]");
                           md.setTextColor(0xFF90A4AE);
                           md.setTextSize(13f);
                           row.addView(md);
@@ -1771,7 +1885,6 @@ jobs:
                   panel.setLayoutParams(plp);
                   menuLayout.addView(panel);
 
-                  // DEVAM butonu
                   addButton("DEVAM ET  >>", R.drawable.btn_blue, this::showMainMenu);
               }
 
@@ -1783,7 +1896,6 @@ jobs:
                   showMenuScene();
                   menuLayout.removeAllViews();
 
-                  // Başlık
                   TextView title = new TextView(this);
                   title.setText("ROAD RUSH");
                   title.setTextColor(0xFFFFD54F);
@@ -1797,7 +1909,6 @@ jobs:
                   title.setLayoutParams(tlp);
                   menuLayout.addView(title);
 
-                  // Kullanıcı bilgi kutusu
                   LinearLayout info = new LinearLayout(this);
                   info.setOrientation(LinearLayout.HORIZONTAL);
                   info.setBackgroundResource(R.drawable.panel_bg);
@@ -1826,20 +1937,18 @@ jobs:
                   info.setLayoutParams(ilp);
                   menuLayout.addView(info);
 
-                  // Mod butonları
                   addSectionHeader("OYUN MODLARI");
                   addButton("🏁  SONSUZ SURUS", R.drawable.btn_blue, () -> {
                       selectedMode = GameRenderer.MODE_ENDLESS;
                       startGame();
                   });
-                  addButton("⏱  ZAMAN YARISI", R.drawable.btn_blue, () -> {
+                  addButton("⏱  ZAMAN YARISI (60 sn)", R.drawable.btn_blue, () -> {
                       selectedMode = GameRenderer.MODE_TIME_TRIAL;
                       startGame();
                   });
-                  addButton("🚓  POLIS KOVALAMACASI", R.drawable.btn_blue, () -> {
-                      selectedMode = GameRenderer.MODE_HOT_PURSUIT;
-                      startGame();
-                  });
+
+                  addSectionHeader("HARITA");
+                  addMapSelector();
 
                   addSectionHeader("GELISTIRME");
                   addButton("🚗  GARAJ", R.drawable.btn_purple, this::openGarage);
@@ -1850,6 +1959,40 @@ jobs:
                   addButton("✏  ISMI DEGISTIR", R.drawable.btn_gray, () -> askName(false));
 
                   updateHud();
+              }
+
+              private void addMapSelector() {
+                  LinearLayout row = new LinearLayout(this);
+                  row.setOrientation(LinearLayout.HORIZONTAL);
+                  row.setGravity(Gravity.CENTER);
+                  LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(
+                          (int) (320 * density), LinearLayout.LayoutParams.WRAP_CONTENT);
+                  rlp.setMargins(0, 4, 0, 4);
+                  row.setLayoutParams(rlp);
+
+                  int current = Save.getMap(prefs);
+                  for (int i = 0; i < Maps.NAMES.length; i++) {
+                      final int idx = i;
+                      TextView b = new TextView(this);
+                      b.setText(Maps.NAMES[i]);
+                      b.setTextSize(13f);
+                      b.setTypeface(Typeface.DEFAULT_BOLD);
+                      b.setGravity(Gravity.CENTER);
+                      b.setPadding(4, (int)(10*density), 4, (int)(10*density));
+                      b.setBackgroundResource(idx == current ? R.drawable.btn_orange : R.drawable.btn_gray);
+                      b.setTextColor(Color.WHITE);
+                      LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                              0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+                      lp.setMargins(3, 0, 3, 0);
+                      b.setLayoutParams(lp);
+                      b.setOnClickListener(v -> {
+                          Save.setMap(prefs, idx);
+                          renderer.mapIdx = idx;
+                          showMainMenu();
+                      });
+                      row.addView(b);
+                  }
+                  menuLayout.addView(row);
               }
 
               private void addSectionHeader(String text) {
@@ -1878,17 +2021,12 @@ jobs:
                   int p = (int) (16 * density);
                   b.setPadding(p, p, p, p);
                   LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                          (int) (320 * density),
-                          LinearLayout.LayoutParams.WRAP_CONTENT);
+                          (int) (320 * density), LinearLayout.LayoutParams.WRAP_CONTENT);
                   lp.setMargins(0, 6, 0, 6);
                   b.setLayoutParams(lp);
                   b.setOnClickListener(v -> action.run());
                   menuLayout.addView(b);
               }
-
-              // ============================================================
-              //  İSİM
-              // ============================================================
 
               private void askName(boolean first) {
                   AlertDialog.Builder b = new AlertDialog.Builder(this);
@@ -1909,14 +2047,13 @@ jobs:
               }
 
               // ============================================================
-              //  GARAJ (önizlemeli)
+              //  GARAJ (BUG FIX: preview her seferinde yeniden oluşturulmuyor)
               // ============================================================
 
               private void openGarage() {
                   showMenuScene();
                   menuLayout.removeAllViews();
 
-                  // Başlık
                   TextView title = new TextView(this);
                   title.setText("🚗  GARAJ");
                   title.setTextColor(0xFFFFD54F);
@@ -1929,7 +2066,6 @@ jobs:
                   title.setLayoutParams(tlp);
                   menuLayout.addView(title);
 
-                  // Para göstergesi
                   TextView gold = new TextView(this);
                   gold.setText("💰 Altin: " + Save.getGold(prefs));
                   gold.setTextColor(0xFFFFD54F);
@@ -1939,10 +2075,8 @@ jobs:
                   gold.setPadding(0, 0, 0, (int)(12*density));
                   menuLayout.addView(gold);
 
-                  // ---- ÖNIZLEME ----
                   addPreview();
 
-                  // ---- ARABA LİSTESİ ----
                   int selectedIdx = Save.getSelectedCar(prefs);
                   for (int i = 0; i < Cars.NAMES.length; i++) {
                       final int idx = i;
@@ -1960,7 +2094,6 @@ jobs:
                       rlp.setMargins(0, 4, 0, 4);
                       row.setLayoutParams(rlp);
 
-                      // Renk kutusu
                       View colorBox = new View(this);
                       float[] col = Cars.BODY[i];
                       colorBox.setBackgroundColor(Color.rgb(
@@ -2004,7 +2137,7 @@ jobs:
               }
 
               // ============================================================
-              //  ÖNİZLEME PENCERESİ
+              //  ÖNİZLEME (BUG FIX: her açılışta yeni GLSurfaceView oluşturulmuyor)
               // ============================================================
 
               private void addPreview() {
@@ -2015,9 +2148,14 @@ jobs:
                       previewRenderer = new PreviewRenderer();
                       previewView.setRenderer(previewRenderer);
                       previewView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+                      previewView.onResume();
                   }
-                  // Seçili araba rengini uygula
                   previewRenderer.setCarColor(Cars.BODY[Save.getSelectedCar(prefs)]);
+
+                  // previewView zaten bir yerde parent'ı varsa önce çıkar
+                  if (previewView.getParent() != null) {
+                      ((android.view.ViewGroup) previewView.getParent()).removeView(previewView);
+                  }
 
                   FrameLayout frame = new FrameLayout(this);
                   frame.setBackgroundResource(R.drawable.preview_bg);
@@ -2032,7 +2170,7 @@ jobs:
               }
 
               // ============================================================
-              //  MODİFİYE
+              //  MODİFİYE (BUG FIX: preview GLSurfaceView aynı kullanılıyor)
               // ============================================================
 
               private void openUpgrade() {
@@ -2128,12 +2266,9 @@ jobs:
                   addButton("<< GERI", R.drawable.btn_red, this::showMainMenu);
               }
 
-              // ============================================================
-              //  OYUN BAŞLAT
-              // ============================================================
-
               private void startGame() {
                   renderer.mode = selectedMode;
+                  renderer.mapIdx = Save.getMap(prefs);
                   renderer.configureForPlayer(
                           Save.getSelectedCar(prefs),
                           Save.getUpgrade(prefs, 0),
@@ -2142,8 +2277,13 @@ jobs:
                           Save.getUpgrade(prefs, 3)
                   );
                   renderer.startGame();
-                  scoreText.setVisibility(View.VISIBLE);
                   scoreText.setText("0 m");
+                  if (selectedMode == GameRenderer.MODE_TIME_TRIAL) {
+                      timeText.setVisibility(View.VISIBLE);
+                      timeText.setText("⏱ 60 sn");
+                  } else {
+                      timeText.setVisibility(View.GONE);
+                  }
                   showGameScene();
                   updateHud();
               }
@@ -2153,9 +2293,6 @@ jobs:
                   sb.append("💰 ").append(Save.getGold(prefs));
                   if (renderer.state == GameRenderer.PLAYING) {
                       sb.append("  +").append(renderer.runGold);
-                      if (renderer.mode == GameRenderer.MODE_TIME_TRIAL) {
-                          sb.append("\n⏱ ").append((int) renderer.timeLeft).append(" sn");
-                      }
                       if (renderer.nitroTime > 0f) sb.append("\n🔥 NITRO");
                       if (renderer.shieldTime > 0f) sb.append("\n🛡 KALKAN");
                       if (renderer.slowmoTime > 0f) sb.append("\n🐢 YAVAS");
@@ -2165,13 +2302,18 @@ jobs:
                   hudText.setText(sb.toString());
               }
 
-              // ============================================================
-              //  LISTENER
-              // ============================================================
-
               @Override
               public void onScore(final int score) {
-                  runOnUiThread(() -> scoreText.setText(score + " m"));
+                  runOnUiThread(() -> {
+                      scoreText.setText(score + " m");
+                      if (renderer.mode == GameRenderer.MODE_TIME_TRIAL && renderer.state == GameRenderer.PLAYING) {
+                          int sec = (int) renderer.timeLeft;
+                          if (sec < 0) sec = 0;
+                          timeText.setText("⏱ " + sec + " sn");
+                          if (sec <= 10) timeText.setTextColor(0xFFFF5252);
+                          else timeText.setTextColor(0xFFFFEB3B);
+                      }
+                  });
               }
 
               @Override
@@ -2193,14 +2335,25 @@ jobs:
               @Override
               public void onCheckpoint(int count, float timeLeft) {
                   onHaptic(1);
-                  runOnUiThread(() -> Toast.makeText(this,
-                          "CHECKPOINT " + count + "! +15 sn", Toast.LENGTH_SHORT).show());
               }
 
               @Override
               public void onPowerUp(int type) {
                   onHaptic(0);
-                  runOnUiThread(this::updateHud);
+                  runOnUiThread(() -> {
+                      updateHud();
+                      String msg;
+                      switch (type) {
+                          case GameRenderer.PU_NITRO: msg = "🔥 NITRO!"; break;
+                          case GameRenderer.PU_SHIELD: msg = "🛡 KALKAN!"; break;
+                          case GameRenderer.PU_SLOWMO: msg = "🐢 YAVAS!"; break;
+                          case GameRenderer.PU_MAGNET: msg = "🧲 MIKNATIS!"; break;
+                          case GameRenderer.PU_DOUBLE_GOLD: msg = "💰 2X ALTIN!"; break;
+                          case GameRenderer.PU_TIME: msg = "⏱ +10 SANIYE!"; break;
+                          default: msg = "POWER-UP!"; break;
+                      }
+                      Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                  });
               }
 
               @Override
@@ -2218,10 +2371,6 @@ jobs:
               public void onReturnToMenu() {
                   runOnUiThread(this::showMainMenu);
               }
-
-              // ============================================================
-              //  SİSTEM UI
-              // ============================================================
 
               @SuppressWarnings("deprecation")
               private void hideSystemUi() {
@@ -2264,5 +2413,5 @@ jobs:
       - name: APK'yı yükle
         uses: actions/upload-artifact@v4
         with:
-          name: RoadRush-APK-v4
+          name: RoadRush-APK-v5
           path: RoadRush/app/build/outputs/apk/debug/app-debug.apk
