@@ -1,0 +1,928 @@
+name: Build APK
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Write project files
+        run: |
+          set -e
+          mkdir -p RoadRush && cd RoadRush
+          mkdir -p .
+          cat > settings.gradle <<'EOF_RR'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = "RoadRush"
+          include ':app'
+          EOF_RR
+          mkdir -p .
+          cat > build.gradle <<'EOF_RR'
+          plugins {
+              id 'com.android.application' version '8.7.3' apply false
+          }
+          EOF_RR
+          mkdir -p .
+          cat > gradle.properties <<'EOF_RR'
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.nonTransitiveRClass=true
+          EOF_RR
+          mkdir -p app
+          cat > app/build.gradle <<'EOF_RR'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.roadrush.game'
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId "com.roadrush.game"
+                  minSdk 24
+                  targetSdk 35
+                  versionCode 1
+                  versionName "1.0"
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+          EOF_RR
+          mkdir -p app/src/main
+          cat > app/src/main/AndroidManifest.xml <<'EOF_RR'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-feature
+                  android:glEsVersion="0x00020000"
+                  android:required="true" />
+
+              <application
+                  android:allowBackup="false"
+                  android:icon="@drawable/ic_launcher"
+                  android:label="@string/app_name"
+                  android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:configChanges="orientation|screenSize|keyboardHidden"
+                      android:exported="true"
+                      android:screenOrientation="portrait">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF_RR
+          mkdir -p app/src/main/res/values
+          cat > app/src/main/res/values/strings.xml <<'EOF_RR'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">Road Rush</string>
+          </resources>
+          EOF_RR
+          mkdir -p app/src/main/res/drawable
+          cat > app/src/main/res/drawable/ic_launcher.xml <<'EOF_RR'
+          <?xml version="1.0" encoding="utf-8"?>
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="96dp"
+              android:height="96dp"
+              android:viewportWidth="96"
+              android:viewportHeight="96">
+              <path
+                  android:fillColor="#FF2B2F3A"
+                  android:pathData="M0,0h96v96h-96z" />
+              <path
+                  android:fillColor="#FFFFFFFF"
+                  android:pathData="M46,6h4v18h-4z M46,34h4v14h-4z" />
+              <path
+                  android:fillColor="#FFE53935"
+                  android:pathData="M32,52h32v30h-32z" />
+              <path
+                  android:fillColor="#FF263238"
+                  android:pathData="M37,58h22v10h-22z" />
+              <path
+                  android:fillColor="#FF111111"
+                  android:pathData="M28,56h5v10h-5z M63,56h5v10h-5z M28,72h5v10h-5z M63,72h5v10h-5z" />
+          </vector>
+          EOF_RR
+          mkdir -p app/src/main/java/com/roadrush/game
+          cat > app/src/main/java/com/roadrush/game/MainActivity.java <<'EOF_RR'
+          package com.roadrush.game;
+
+          import android.app.Activity;
+          import android.content.SharedPreferences;
+          import android.graphics.Color;
+          import android.graphics.Typeface;
+          import android.opengl.GLSurfaceView;
+          import android.os.Bundle;
+          import android.view.Gravity;
+          import android.view.MotionEvent;
+          import android.view.View;
+          import android.view.WindowManager;
+          import android.widget.FrameLayout;
+          import android.widget.TextView;
+
+          public class MainActivity extends Activity implements GameRenderer.Listener {
+
+              private GLSurfaceView glView;
+              private GameRenderer renderer;
+              private TextView scoreText;
+              private TextView msgText;
+              private SharedPreferences prefs;
+              private int best;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                  prefs = getSharedPreferences("roadrush", MODE_PRIVATE);
+                  best = prefs.getInt("best", 0);
+
+                  float d = getResources().getDisplayMetrics().density;
+
+                  renderer = new GameRenderer(this);
+                  glView = new GLSurfaceView(this);
+                  glView.setEGLContextClientVersion(2);
+                  glView.setEGLConfigChooser(8, 8, 8, 8, 24, 0);
+                  glView.setRenderer(renderer);
+                  glView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+                  glView.setOnTouchListener((v, e) -> {
+                      int action = e.getActionMasked();
+                      if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
+                          renderer.tap();
+                      }
+                      if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                          renderer.steer = 0f;
+                          return true;
+                      }
+                      int skip = action == MotionEvent.ACTION_POINTER_UP ? e.getActionIndex() : -1;
+                      float mid = v.getWidth() / 2f;
+                      boolean left = false;
+                      boolean right = false;
+                      for (int i = 0; i < e.getPointerCount(); i++) {
+                          if (i == skip) continue;
+                          if (e.getX(i) < mid) left = true;
+                          else right = true;
+                      }
+                      renderer.steer = (right ? 1f : 0f) - (left ? 1f : 0f);
+                      return true;
+                  });
+
+                  FrameLayout root = new FrameLayout(this);
+                  root.setBackgroundColor(Color.BLACK);
+                  root.addView(glView, new FrameLayout.LayoutParams(
+                          FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
+                  scoreText = new TextView(this);
+                  scoreText.setTextColor(Color.WHITE);
+                  scoreText.setTextSize(30f);
+                  scoreText.setTypeface(Typeface.DEFAULT_BOLD);
+                  scoreText.setShadowLayer(6f, 0f, 2f, Color.BLACK);
+                  scoreText.setText("0 m");
+                  FrameLayout.LayoutParams sp = new FrameLayout.LayoutParams(
+                          FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT,
+                          Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+                  sp.topMargin = (int) (56 * d);
+                  root.addView(scoreText, sp);
+
+                  msgText = new TextView(this);
+                  msgText.setTextColor(Color.WHITE);
+                  msgText.setTextSize(22f);
+                  msgText.setTypeface(Typeface.DEFAULT_BOLD);
+                  msgText.setGravity(Gravity.CENTER);
+                  msgText.setShadowLayer(6f, 0f, 2f, Color.BLACK);
+                  msgText.setBackgroundColor(0x88000000);
+                  int pad = (int) (20 * d);
+                  msgText.setPadding(pad, pad, pad, pad);
+                  FrameLayout.LayoutParams mp = new FrameLayout.LayoutParams(
+                          FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT,
+                          Gravity.CENTER);
+                  root.addView(msgText, mp);
+                  msgText.setText(readyMessage());
+
+                  setContentView(root);
+                  hideSystemUi();
+              }
+
+              private String readyMessage() {
+                  String s = "ROAD RUSH\n\nEkranın sol veya sağ yarısına\nbasılı tutarak direksiyonu çevir.\nEngellerden kaç!\n\nBaşlamak için dokun";
+                  if (best > 0) s += "\n\nEn iyi: " + best + " m";
+                  return s;
+              }
+
+              @Override
+              public void onScore(final int score) {
+                  runOnUiThread(() -> scoreText.setText(score + " m"));
+              }
+
+              @Override
+              public void onState(final int state, final int score) {
+                  if (state == GameRenderer.DEAD && score > best) {
+                      best = score;
+                      prefs.edit().putInt("best", best).apply();
+                  }
+                  final boolean record = state == GameRenderer.DEAD && score > 0 && score >= best;
+                  runOnUiThread(() -> {
+                      if (state == GameRenderer.PLAYING) {
+                          msgText.setVisibility(View.GONE);
+                          scoreText.setText("0 m");
+                      } else if (state == GameRenderer.DEAD) {
+                          String s = "ÇARPTIN!\n\nMesafe: " + score + " m\nEn iyi: " + best + " m";
+                          if (record) s += "\n\nYeni rekor!";
+                          s += "\n\nTekrar oynamak için dokun";
+                          msgText.setText(s);
+                          msgText.setVisibility(View.VISIBLE);
+                      }
+                  });
+              }
+
+              @SuppressWarnings("deprecation")
+              private void hideSystemUi() {
+                  getWindow().getDecorView().setSystemUiVisibility(
+                          View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                  | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                  | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                  | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                  | View.SYSTEM_UI_FLAG_FULLSCREEN
+                                  | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+              }
+
+              @Override
+              public void onWindowFocusChanged(boolean hasFocus) {
+                  super.onWindowFocusChanged(hasFocus);
+                  if (hasFocus) hideSystemUi();
+              }
+
+              @Override
+              protected void onResume() {
+                  super.onResume();
+                  glView.onResume();
+                  hideSystemUi();
+              }
+
+              @Override
+              protected void onPause() {
+                  super.onPause();
+                  glView.onPause();
+                  renderer.steer = 0f;
+              }
+          }
+          EOF_RR
+          mkdir -p app/src/main/java/com/roadrush/game
+          cat > app/src/main/java/com/roadrush/game/GameRenderer.java <<'EOF_RR'
+          package com.roadrush.game;
+
+          import android.opengl.GLES20;
+          import android.opengl.GLSurfaceView;
+          import android.opengl.Matrix;
+          import android.util.Log;
+
+          import java.nio.ByteBuffer;
+          import java.nio.ByteOrder;
+          import java.nio.FloatBuffer;
+          import java.nio.ShortBuffer;
+          import java.util.Random;
+
+          import javax.microedition.khronos.egl.EGLConfig;
+          import javax.microedition.khronos.opengles.GL10;
+
+          /**
+           * Road Rush: arkadan görünümlü, sadece sağ/sol ile oynanan 3B yarış oyunu.
+           * Saf OpenGL ES 2.0, harici kütüphane yok.
+           */
+          public class GameRenderer implements GLSurfaceView.Renderer {
+
+              public static final int READY = 0;
+              public static final int PLAYING = 1;
+              public static final int DEAD = 2;
+
+              public interface Listener {
+                  void onScore(int score);
+
+                  void onState(int state, int score);
+              }
+
+              // ---- Dünya sabitleri ----
+              static final float LANE_W = 2.2f;
+              static final float MAX_X = 2.55f;
+              static final float MAX_LAT = 8f;
+              static final float START_SPEED = 20f;
+              static final float MAX_SPEED = 48f;
+              static final float SPAWN_Z = -115f;
+              static final float PLAYER_HALF_W = 0.40f;
+              static final float PLAYER_HALF_L = 0.85f;
+              static final int MAX_OBS = 48;
+
+              // Engel tipleri: 0 bariyer, 1 karşıdan gelen araç, 2 sandık
+              static final float[] TYPE_W = {1.9f, 1.15f, 1.75f};
+              static final float[] TYPE_D = {0.5f, 2.2f, 1.3f};
+
+              static final float[][] CAR_COLORS = {
+                      {0.20f, 0.45f, 0.90f},
+                      {0.95f, 0.75f, 0.10f},
+                      {0.20f, 0.70f, 0.40f},
+                      {0.80f, 0.80f, 0.85f},
+                      {0.60f, 0.20f, 0.70f}
+              };
+
+              static final float FOG_R = 0.62f, FOG_G = 0.80f, FOG_B = 0.95f;
+
+              // ---- Girdi (UI thread yazar, GL thread okur) ----
+              public volatile float steer = 0f;
+              private volatile boolean tapReq = false;
+
+              private final Listener listener;
+
+              // ---- Oyun durumu ----
+              int state = READY;
+              float speed = 10f;
+              float dist = 0f;
+              float scroll = 0f;
+              float px = 0f;
+              float vx = 0f;
+              float spin = 0f;
+              float spinDir = 1f;
+              float crashT = 0f;
+              float nextRow = 0f;
+              int safeLane = 1;
+              int lastScore = -1;
+              float time = 0f;
+
+              final boolean[] oAct = new boolean[MAX_OBS];
+              final float[] oX = new float[MAX_OBS];
+              final float[] oZ = new float[MAX_OBS];
+              final float[] oW = new float[MAX_OBS];
+              final float[] oD = new float[MAX_OBS];
+              final int[] oType = new int[MAX_OBS];
+              final int[] oCol = new int[MAX_OBS];
+
+              private final Random rnd = new Random();
+              private long lastNanos = 0L;
+
+              // ---- GL ----
+              private int program = 0;
+              private int aPos, aNormal;
+              private int uMVP, uModel, uColor, uGlow, uLight, uFogColor, uFogStart, uFogEnd;
+              private FloatBuffer vertexBuf;
+              private ShortBuffer indexBuf;
+              private float aspect = 0.5f;
+
+              private final float[] proj = new float[16];
+              private final float[] view = new float[16];
+              private final float[] vp = new float[16];
+              private final float[] model = new float[16];
+              private final float[] mvp = new float[16];
+              private final float[] ident = new float[16];
+              private final float[] base = new float[16];
+
+              public GameRenderer(Listener listener) {
+                  this.listener = listener;
+                  Matrix.setIdentityM(ident, 0);
+              }
+
+              // =====================================================================
+              //  Girdi
+              // =====================================================================
+
+              /** UI thread'den çağrılır: ekrana ilk dokunuş. */
+              public void tap() {
+                  tapReq = true;
+              }
+
+              // =====================================================================
+              //  Oyun mantığı (GL'den bağımsız, test edilebilir)
+              // =====================================================================
+
+              private void handleTap() {
+                  if (state == READY || (state == DEAD && crashT > 0.7f)) {
+                      startGame();
+                  }
+              }
+
+              void startGame() {
+                  for (int i = 0; i < MAX_OBS; i++) oAct[i] = false;
+                  dist = 0f;
+                  px = 0f;
+                  vx = 0f;
+                  spin = 0f;
+                  crashT = 0f;
+                  nextRow = 0f;
+                  safeLane = 1;
+                  speed = START_SPEED;
+                  lastScore = -1;
+                  state = PLAYING;
+                  if (listener != null) listener.onState(PLAYING, 0);
+              }
+
+              void step(float dt) {
+                  time += dt;
+                  if (tapReq) {
+                      tapReq = false;
+                      handleTap();
+                  }
+
+                  if (state == READY) {
+                      speed = 10f;
+                  } else if (state == PLAYING) {
+                      speed = Math.min(MAX_SPEED, START_SPEED + dist / 70f);
+                  } else {
+                      speed *= (float) Math.exp(-2.5f * dt);
+                      crashT += dt;
+                  }
+                  scroll += speed * dt;
+
+                  // Direksiyon (sadece sağ/sol)
+                  if (state != DEAD) {
+                      float target = steer * MAX_LAT;
+                      vx += (target - vx) * Math.min(1f, 12f * dt);
+                      px += vx * dt;
+                      if (px > MAX_X) {
+                          px = MAX_X;
+                          if (vx > 0f) vx = 0f;
+                      } else if (px < -MAX_X) {
+                          px = -MAX_X;
+                          if (vx < 0f) vx = 0f;
+                      }
+                  } else {
+                      vx *= (float) Math.exp(-4f * dt);
+                      spin += spinDir * 600f * (float) Math.exp(-3f * crashT) * dt;
+                  }
+
+                  if (state == PLAYING) {
+                      dist += speed * dt;
+
+                      nextRow -= speed * dt;
+                      if (nextRow <= 0f) {
+                          spawnRow();
+                          nextRow = Math.max(26f, speed * 1.0f) + rnd.nextFloat() * 8f;
+                      }
+                  }
+
+                  if (state != READY) {
+                      for (int i = 0; i < MAX_OBS; i++) {
+                          if (!oAct[i]) continue;
+                          oZ[i] += speed * dt;
+                          if (oZ[i] - oD[i] * 0.5f > 12f) oAct[i] = false;
+                      }
+                  }
+
+                  if (state == PLAYING) {
+                      for (int i = 0; i < MAX_OBS; i++) {
+                          if (!oAct[i]) continue;
+                          if (Math.abs(px - oX[i]) < PLAYER_HALF_W + oW[i] * 0.5f
+                                  && Math.abs(oZ[i]) < PLAYER_HALF_L + oD[i] * 0.5f) {
+                              crash();
+                              break;
+                          }
+                      }
+                      int sc = score();
+                      if (sc != lastScore) {
+                          lastScore = sc;
+                          if (listener != null) listener.onScore(sc);
+                      }
+                  }
+              }
+
+              int score() {
+                  return (int) (dist / 2f);
+              }
+
+              private void crash() {
+                  state = DEAD;
+                  crashT = 0f;
+                  spinDir = rnd.nextBoolean() ? 1f : -1f;
+                  if (listener != null) listener.onState(DEAD, score());
+              }
+
+              /**
+               * Her satırda en az bir güvenli şerit bırakılır; güvenli şerit bir önceki
+               * satırdakine en fazla 1 şerit uzaklıktadır, bu yüzden oyun her zaman
+               * geçilebilir kalır.
+               */
+              private void spawnRow() {
+                  int lane = safeLane + (rnd.nextInt(3) - 1);
+                  if (lane < 0) lane = 0;
+                  if (lane > 2) lane = 2;
+                  safeLane = lane;
+
+                  boolean both = rnd.nextFloat() < Math.min(0.85f, 0.35f + dist / 6000f);
+                  int single = -1;
+                  if (!both) {
+                      single = rnd.nextInt(2);
+                      if (single >= safeLane) single++;
+                  }
+                  for (int l = 0; l < 3; l++) {
+                      if (l == safeLane) continue;
+                      if (!both && l != single) continue;
+                      float r = rnd.nextFloat();
+                      int type = r < 0.35f ? 0 : (r < 0.75f ? 1 : 2);
+                      addObstacle((l - 1) * LANE_W, type);
+                  }
+              }
+
+              private void addObstacle(float x, int type) {
+                  for (int i = 0; i < MAX_OBS; i++) {
+                      if (oAct[i]) continue;
+                      oAct[i] = true;
+                      oX[i] = x;
+                      oZ[i] = SPAWN_Z;
+                      oType[i] = type;
+                      oW[i] = TYPE_W[type];
+                      oD[i] = TYPE_D[type];
+                      oCol[i] = rnd.nextInt(CAR_COLORS.length);
+                      return;
+                  }
+              }
+
+              // =====================================================================
+              //  GLSurfaceView.Renderer
+              // =====================================================================
+
+              private static final String VERTEX_SRC =
+                      "attribute vec3 aPos;\n"
+                              + "attribute vec3 aNormal;\n"
+                              + "uniform mat4 uMVP;\n"
+                              + "uniform mat4 uModel;\n"
+                              + "uniform vec3 uLight;\n"
+                              + "uniform float uFogStart;\n"
+                              + "uniform float uFogEnd;\n"
+                              + "varying float vLight;\n"
+                              + "varying float vFog;\n"
+                              + "void main() {\n"
+                              + "  vec3 n = normalize((uModel * vec4(aNormal, 0.0)).xyz);\n"
+                              + "  vLight = 0.45 + 0.55 * max(dot(n, normalize(uLight)), 0.0);\n"
+                              + "  gl_Position = uMVP * vec4(aPos, 1.0);\n"
+                              + "  vFog = clamp((gl_Position.w - uFogStart) / (uFogEnd - uFogStart), 0.0, 1.0);\n"
+                              + "}\n";
+
+              private static final String FRAGMENT_SRC =
+                      "precision mediump float;\n"
+                              + "varying float vLight;\n"
+                              + "varying float vFog;\n"
+                              + "uniform vec4 uColor;\n"
+                              + "uniform vec3 uFogColor;\n"
+                              + "uniform float uGlow;\n"
+                              + "void main() {\n"
+                              + "  vec3 c = uColor.rgb * mix(vLight, 1.0, uGlow);\n"
+                              + "  c = mix(c, uFogColor, vFog);\n"
+                              + "  gl_FragColor = vec4(c, 1.0);\n"
+                              + "}\n";
+
+              @Override
+              public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+                  lastNanos = 0L;
+                  program = createProgram(VERTEX_SRC, FRAGMENT_SRC);
+                  aPos = GLES20.glGetAttribLocation(program, "aPos");
+                  aNormal = GLES20.glGetAttribLocation(program, "aNormal");
+                  uMVP = GLES20.glGetUniformLocation(program, "uMVP");
+                  uModel = GLES20.glGetUniformLocation(program, "uModel");
+                  uColor = GLES20.glGetUniformLocation(program, "uColor");
+                  uGlow = GLES20.glGetUniformLocation(program, "uGlow");
+                  uLight = GLES20.glGetUniformLocation(program, "uLight");
+                  uFogColor = GLES20.glGetUniformLocation(program, "uFogColor");
+                  uFogStart = GLES20.glGetUniformLocation(program, "uFogStart");
+                  uFogEnd = GLES20.glGetUniformLocation(program, "uFogEnd");
+                  buildCube();
+                  GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+              }
+
+              @Override
+              public void onSurfaceChanged(GL10 gl, int width, int height) {
+                  GLES20.glViewport(0, 0, width, height);
+                  aspect = (float) width / (float) Math.max(1, height);
+              }
+
+              @Override
+              public void onDrawFrame(GL10 gl) {
+                  long now = System.nanoTime();
+                  float dt = lastNanos == 0L ? 0f : (now - lastNanos) / 1e9f;
+                  lastNanos = now;
+                  if (dt > 0.05f) dt = 0.05f;
+                  step(dt);
+                  render();
+              }
+
+              // =====================================================================
+              //  Çizim
+              // =====================================================================
+
+              private void buildCube() {
+                  float[] v = {
+                          // +X
+                          0.5f, -0.5f, -0.5f, 1, 0, 0, 0.5f, 0.5f, -0.5f, 1, 0, 0,
+                          0.5f, 0.5f, 0.5f, 1, 0, 0, 0.5f, -0.5f, 0.5f, 1, 0, 0,
+                          // -X
+                          -0.5f, -0.5f, 0.5f, -1, 0, 0, -0.5f, 0.5f, 0.5f, -1, 0, 0,
+                          -0.5f, 0.5f, -0.5f, -1, 0, 0, -0.5f, -0.5f, -0.5f, -1, 0, 0,
+                          // +Y
+                          -0.5f, 0.5f, -0.5f, 0, 1, 0, -0.5f, 0.5f, 0.5f, 0, 1, 0,
+                          0.5f, 0.5f, 0.5f, 0, 1, 0, 0.5f, 0.5f, -0.5f, 0, 1, 0,
+                          // -Y
+                          -0.5f, -0.5f, 0.5f, 0, -1, 0, -0.5f, -0.5f, -0.5f, 0, -1, 0,
+                          0.5f, -0.5f, -0.5f, 0, -1, 0, 0.5f, -0.5f, 0.5f, 0, -1, 0,
+                          // +Z
+                          -0.5f, -0.5f, 0.5f, 0, 0, 1, 0.5f, -0.5f, 0.5f, 0, 0, 1,
+                          0.5f, 0.5f, 0.5f, 0, 0, 1, -0.5f, 0.5f, 0.5f, 0, 0, 1,
+                          // -Z
+                          0.5f, -0.5f, -0.5f, 0, 0, -1, -0.5f, -0.5f, -0.5f, 0, 0, -1,
+                          -0.5f, 0.5f, -0.5f, 0, 0, -1, 0.5f, 0.5f, -0.5f, 0, 0, -1
+                  };
+                  short[] idx = new short[36];
+                  for (int f = 0; f < 6; f++) {
+                      int o = f * 4;
+                      idx[f * 6] = (short) o;
+                      idx[f * 6 + 1] = (short) (o + 1);
+                      idx[f * 6 + 2] = (short) (o + 2);
+                      idx[f * 6 + 3] = (short) o;
+                      idx[f * 6 + 4] = (short) (o + 2);
+                      idx[f * 6 + 5] = (short) (o + 3);
+                  }
+                  vertexBuf = ByteBuffer.allocateDirect(v.length * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+                  vertexBuf.put(v).position(0);
+                  indexBuf = ByteBuffer.allocateDirect(idx.length * 2).order(ByteOrder.nativeOrder()).asShortBuffer();
+                  indexBuf.put(idx).position(0);
+              }
+
+              private void box(float[] b, float lx, float ly, float lz,
+                               float sx, float sy, float sz,
+                               float r, float g, float bl, float glow) {
+                  System.arraycopy(b, 0, model, 0, 16);
+                  Matrix.translateM(model, 0, lx, ly, lz);
+                  Matrix.scaleM(model, 0, sx, sy, sz);
+                  Matrix.multiplyMM(mvp, 0, vp, 0, model, 0);
+                  GLES20.glUniformMatrix4fv(uMVP, 1, false, mvp, 0);
+                  GLES20.glUniformMatrix4fv(uModel, 1, false, model, 0);
+                  GLES20.glUniform4f(uColor, r, g, bl, 1f);
+                  GLES20.glUniform1f(uGlow, glow);
+                  GLES20.glDrawElements(GLES20.GL_TRIANGLES, 36, GLES20.GL_UNSIGNED_SHORT, indexBuf);
+              }
+
+              private void render() {
+                  if (program == 0) return;
+
+                  GLES20.glClearColor(FOG_R, FOG_G, FOG_B, 1f);
+                  GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+                  GLES20.glUseProgram(program);
+
+                  // Kamera: arabanın arkasında ve yukarısında
+                  float fov = (float) Math.toDegrees(2.0 * Math.atan(3.6 / (8.5 * aspect)));
+                  if (fov < 55f) fov = 55f;
+                  if (fov > 95f) fov = 95f;
+                  fov += Math.max(0f, (speed - START_SPEED)) * 0.2f;
+                  Matrix.perspectiveM(proj, 0, fov, aspect, 0.1f, 200f);
+
+                  float shake = state == DEAD ? 0.35f * (float) Math.exp(-5f * crashT) : 0f;
+                  float cx = px * 0.6f + (float) Math.sin(time * 70f) * shake;
+                  float cy = 4.0f + (float) Math.cos(time * 83f) * shake * 0.6f;
+                  Matrix.setLookAtM(view, 0, cx, cy, 8.0f, cx, 0.5f, -10f, 0f, 1f, 0f);
+                  Matrix.multiplyMM(vp, 0, proj, 0, view, 0);
+
+                  GLES20.glUniform3f(uLight, 0.4f, 1.0f, 0.6f);
+                  GLES20.glUniform3f(uFogColor, FOG_R, FOG_G, FOG_B);
+                  GLES20.glUniform1f(uFogStart, 45f);
+                  GLES20.glUniform1f(uFogEnd, 150f);
+
+                  vertexBuf.position(0);
+                  GLES20.glVertexAttribPointer(aPos, 3, GLES20.GL_FLOAT, false, 24, vertexBuf);
+                  GLES20.glEnableVertexAttribArray(aPos);
+                  vertexBuf.position(3);
+                  GLES20.glVertexAttribPointer(aNormal, 3, GLES20.GL_FLOAT, false, 24, vertexBuf);
+                  GLES20.glEnableVertexAttribArray(aNormal);
+                  indexBuf.position(0);
+
+                  drawEnvironment();
+                  drawObstacles();
+                  drawPlayer();
+              }
+
+              private void drawEnvironment() {
+                  // Çim şeritleri
+                  final float gp = 10f;
+                  float off = scroll % gp;
+                  int f = (int) (scroll / gp);
+                  for (int i = -1; i <= 18; i++) {
+                      boolean a = (((i + f) & 1) == 0);
+                      float z = -i * gp + off;
+                      if (a) box(ident, 0, -0.1f, z, 120f, 0.2f, gp, 0.30f, 0.62f, 0.30f, 0f);
+                      else box(ident, 0, -0.1f, z, 120f, 0.2f, gp, 0.26f, 0.56f, 0.27f, 0f);
+                  }
+
+                  // Asfalt
+                  box(ident, 0, 0f, -90f, 6.6f, 0.2f, 220f, 0.22f, 0.23f, 0.26f, 0f);
+
+                  // Kenar çizgileri
+                  box(ident, -3.0f, 0.12f, -90f, 0.12f, 0.04f, 220f, 0.95f, 0.95f, 0.95f, 0f);
+                  box(ident, 3.0f, 0.12f, -90f, 0.12f, 0.04f, 220f, 0.95f, 0.95f, 0.95f, 0f);
+
+                  // Şerit çizgileri (kesikli)
+                  final float dp = 8f;
+                  off = scroll % dp;
+                  for (int i = -1; i < 17; i++) {
+                      float z = -i * dp + off;
+                      box(ident, -1.1f, 0.12f, z, 0.14f, 0.04f, 3f, 0.95f, 0.95f, 0.85f, 0f);
+                      box(ident, 1.1f, 0.12f, z, 0.14f, 0.04f, 3f, 0.95f, 0.95f, 0.85f, 0f);
+                  }
+
+                  // Kırmızı/beyaz bordürler
+                  final float cp = 4f;
+                  off = scroll % cp;
+                  f = (int) (scroll / cp);
+                  for (int i = -2; i < 32; i++) {
+                      boolean a = (((i + f) & 1) == 0);
+                      float z = -i * cp + off;
+                      float r = a ? 0.88f : 0.95f;
+                      float g = a ? 0.15f : 0.95f;
+                      float b = a ? 0.15f : 0.95f;
+                      box(ident, -3.45f, 0.05f, z, 0.35f, 0.2f, cp, r, g, b, 0f);
+                      box(ident, 3.45f, 0.05f, z, 0.35f, 0.2f, cp, r, g, b, 0f);
+                  }
+
+                  // Yol kenarı ağaçları
+                  final float tp = 14f;
+                  off = scroll % tp;
+                  f = (int) (scroll / tp);
+                  for (int i = -1; i < 11; i++) {
+                      int id = i + f;
+                      float z = -i * tp + off;
+                      for (int s = -1; s <= 1; s += 2) {
+                          int h = ((id * 73856093) ^ (s * 19349663)) >>> 3;
+                          h &= 0xFF;
+                          if (h % 5 == 0) continue;
+                          float x = s * (5.8f + (h % 3) * 1.7f);
+                          float th = 1.0f + (h % 4) * 0.35f;
+                          box(ident, x, th * 0.5f, z, 0.3f, th, 0.3f, 0.45f, 0.30f, 0.15f, 0f);
+                          box(ident, x, th + 0.8f, z, 1.5f, 1.6f, 1.5f, 0.15f, 0.45f + (h % 3) * 0.05f, 0.18f, 0f);
+                      }
+                  }
+              }
+
+              private void drawObstacles() {
+                  for (int i = 0; i < MAX_OBS; i++) {
+                      if (!oAct[i]) continue;
+                      Matrix.setIdentityM(base, 0);
+                      Matrix.translateM(base, 0, oX[i], 0f, oZ[i]);
+                      switch (oType[i]) {
+                          case 0:
+                              drawBarrier(base);
+                              break;
+                          case 1:
+                              drawTrafficCar(base, CAR_COLORS[oCol[i]]);
+                              break;
+                          default:
+                              drawCrate(base);
+                              break;
+                      }
+                  }
+              }
+
+              private void drawBarrier(float[] b) {
+                  box(b, -0.8f, 0.3f, 0f, 0.12f, 0.6f, 0.12f, 0.35f, 0.35f, 0.38f, 0f);
+                  box(b, 0.8f, 0.3f, 0f, 0.12f, 0.6f, 0.12f, 0.35f, 0.35f, 0.38f, 0f);
+                  box(b, 0f, 0.8f, 0f, 1.9f, 0.5f, 0.14f, 0.96f, 0.96f, 0.96f, 0f);
+                  for (int k = 0; k < 4; k++) {
+                      box(b, -0.72f + k * 0.48f, 0.8f, 0f, 0.24f, 0.5f, 0.16f, 0.88f, 0.12f, 0.12f, 0f);
+                  }
+              }
+
+              private void drawTrafficCar(float[] b, float[] c) {
+                  // Karşıdan gelen araç: ön yüzü (+z) oyuncuya bakar
+                  box(b, 0f, 0.42f, 0f, 1.15f, 0.5f, 2.2f, c[0], c[1], c[2], 0f);
+                  box(b, 0f, 0.86f, -0.2f, 0.97f, 0.38f, 1.08f, 0.12f, 0.16f, 0.22f, 0f);
+                  box(b, 0f, 1.07f, -0.2f, 0.92f, 0.05f, 1.0f, c[0] * 0.8f, c[1] * 0.8f, c[2] * 0.8f, 0f);
+                  box(b, -0.38f, 0.5f, 1.1f, 0.25f, 0.14f, 0.06f, 1f, 0.95f, 0.6f, 1f);
+                  box(b, 0.38f, 0.5f, 1.1f, 0.25f, 0.14f, 0.06f, 1f, 0.95f, 0.6f, 1f);
+                  box(b, 0f, 0.22f, 1.1f, 1.15f, 0.12f, 0.06f, 0.1f, 0.1f, 0.1f, 0f);
+                  for (int sx = -1; sx <= 1; sx += 2) {
+                      for (int sz = -1; sz <= 1; sz += 2) {
+                          box(b, sx * 0.58f, 0.18f, sz * 0.7f, 0.2f, 0.36f, 0.5f, 0.07f, 0.07f, 0.07f, 0f);
+                      }
+                  }
+              }
+
+              private void drawCrate(float[] b) {
+                  box(b, 0f, 0.7f, 0f, 1.75f, 1.4f, 1.3f, 0.85f, 0.50f, 0.15f, 0f);
+                  box(b, 0f, 0.3f, 0f, 1.8f, 0.14f, 1.35f, 0.50f, 0.30f, 0.10f, 0f);
+                  box(b, 0f, 1.1f, 0f, 1.8f, 0.14f, 1.35f, 0.50f, 0.30f, 0.10f, 0f);
+                  box(b, 0f, 0.7f, 0f, 0.14f, 1.45f, 1.35f, 0.50f, 0.30f, 0.10f, 0f);
+              }
+
+              private void drawPlayer() {
+                  float yaw = -vx * 1.8f + spin;
+                  float roll = state == DEAD ? Math.min(1f, crashT * 3f) * 18f * spinDir : 0f;
+                  float hop = 0f;
+                  if (state == DEAD) {
+                      hop = Math.max(0f, (float) Math.sin(crashT * 9f)) * 0.6f * (float) Math.exp(-2f * crashT);
+                  }
+
+                  // Gölge
+                  Matrix.setIdentityM(base, 0);
+                  Matrix.translateM(base, 0, px, 0f, 0f);
+                  box(base, 0f, 0.105f, 0f, 1.25f, 0.02f, 2.3f, 0.10f, 0.10f, 0.12f, 0f);
+
+                  Matrix.setIdentityM(base, 0);
+                  Matrix.translateM(base, 0, px, hop, 0f);
+                  Matrix.rotateM(base, 0, yaw, 0f, 1f, 0f);
+                  Matrix.rotateM(base, 0, roll, 0f, 0f, 1f);
+
+                  // Gövde
+                  box(base, 0f, 0.42f, 0f, 1.0f, 0.42f, 2.0f, 0.90f, 0.12f, 0.12f, 0f);
+                  // Kabin
+                  box(base, 0f, 0.80f, 0.15f, 0.84f, 0.36f, 1.0f, 0.12f, 0.16f, 0.24f, 0f);
+                  box(base, 0f, 1.00f, 0.15f, 0.80f, 0.05f, 0.95f, 0.80f, 0.10f, 0.10f, 0f);
+                  // Spoyler
+                  box(base, -0.38f, 0.78f, 0.88f, 0.06f, 0.30f, 0.1f, 0.12f, 0.12f, 0.12f, 0f);
+                  box(base, 0.38f, 0.78f, 0.88f, 0.06f, 0.30f, 0.1f, 0.12f, 0.12f, 0.12f, 0f);
+                  box(base, 0f, 0.95f, 0.88f, 1.05f, 0.06f, 0.32f, 0.12f, 0.12f, 0.12f, 0f);
+                  // Stop lambaları
+                  float glow = state == DEAD ? 1f : 0.9f;
+                  box(base, -0.34f, 0.55f, 1.01f, 0.24f, 0.12f, 0.05f, 1f, 0.15f, 0.15f, glow);
+                  box(base, 0.34f, 0.55f, 1.01f, 0.24f, 0.12f, 0.05f, 1f, 0.15f, 0.15f, glow);
+                  // Tekerlekler
+                  for (int sx = -1; sx <= 1; sx += 2) {
+                      for (int sz = -1; sz <= 1; sz += 2) {
+                          box(base, sx * 0.52f, 0.18f, sz * 0.62f, 0.2f, 0.36f, 0.5f, 0.06f, 0.06f, 0.06f, 0f);
+                      }
+                  }
+              }
+
+              // =====================================================================
+              //  Shader yardımcıları
+              // =====================================================================
+
+              private static int loadShader(int type, String src) {
+                  int s = GLES20.glCreateShader(type);
+                  GLES20.glShaderSource(s, src);
+                  GLES20.glCompileShader(s);
+                  int[] ok = new int[1];
+                  GLES20.glGetShaderiv(s, GLES20.GL_COMPILE_STATUS, ok, 0);
+                  if (ok[0] == 0) {
+                      Log.e("RoadRush", "Shader hatası: " + GLES20.glGetShaderInfoLog(s));
+                      GLES20.glDeleteShader(s);
+                      return 0;
+                  }
+                  return s;
+              }
+
+              private static int createProgram(String vs, String fs) {
+                  int v = loadShader(GLES20.GL_VERTEX_SHADER, vs);
+                  int f = loadShader(GLES20.GL_FRAGMENT_SHADER, fs);
+                  if (v == 0 || f == 0) return 0;
+                  int p = GLES20.glCreateProgram();
+                  GLES20.glAttachShader(p, v);
+                  GLES20.glAttachShader(p, f);
+                  GLES20.glLinkProgram(p);
+                  int[] ok = new int[1];
+                  GLES20.glGetProgramiv(p, GLES20.GL_LINK_STATUS, ok, 0);
+                  if (ok[0] == 0) {
+                      Log.e("RoadRush", "Program hatası: " + GLES20.glGetProgramInfoLog(p));
+                      GLES20.glDeleteProgram(p);
+                      return 0;
+                  }
+                  return p;
+              }
+          }
+          EOF_RR
+
+      - name: Build APK
+        run: cd RoadRush && gradle assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RoadRush-APK
+          path: RoadRush/app/build/outputs/apk/debug/app-debug.apk
